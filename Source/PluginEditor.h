@@ -28,10 +28,7 @@ public:
     //==============================================================================
     void paint (Graphics&) override;
     void resized() override;
-    void textEditorReturnKeyPressed (TextEditor& textEditor);
-
-    
-    
+    void textEditorReturnKeyPressed (TextEditor& textEditor) override;
 
 private:
     Playhead2oscAudioProcessor& _processor;

@@ -23,36 +23,35 @@ Playhead2oscAudioProcessor::Playhead2oscAudioProcessor()
                        .withOutput ("Output", AudioChannelSet::stereo(), true)
                      #endif
                        ),
-    parameters(*this, nullptr)
-
+    _parameters(*this, nullptr)
 #endif
 {
-    parameters.createAndAddParameter ("bpm", "bpm", String(),
+    _parameters.createAndAddParameter ("bpm", "bpm", String(),
+                                       NormalisableRange<float> (0.0f, 1.0f, 1.0f), 0.0f,
+                                      invertPhaseToText,    // value to text function
+                                      textToInvertPhase);   // text to value function
+    _parameters.createAndAddParameter ("timeSignature", "timeSignature", String(),
                                       NormalisableRange<float> (0.0f, 1.0f, 1.0f), 0.0f,
                                       invertPhaseToText,    // value to text function
                                       textToInvertPhase);   // text to value function
-    parameters.createAndAddParameter ("timeSignature", "timeSignature", String(),
+    _parameters.createAndAddParameter ("timeInSeconds", "timeInSeconds", String(),
                                       NormalisableRange<float> (0.0f, 1.0f, 1.0f), 0.0f,
                                       invertPhaseToText,    // value to text function
                                       textToInvertPhase);   // text to value function
-    parameters.createAndAddParameter ("timeInSeconds", "timeInSeconds", String(),
+    _parameters.createAndAddParameter ("isPlaying", "isPlaying", String(),
                                       NormalisableRange<float> (0.0f, 1.0f, 1.0f), 0.0f,
                                       invertPhaseToText,    // value to text function
                                       textToInvertPhase);   // text to value function
-    parameters.createAndAddParameter ("isPlaying", "isPlaying", String(),
+    _parameters.createAndAddParameter ("isRecording", "isRecording", String(),
                                       NormalisableRange<float> (0.0f, 1.0f, 1.0f), 0.0f,
                                       invertPhaseToText,    // value to text function
                                       textToInvertPhase);   // text to value function
-    parameters.createAndAddParameter ("isRecording", "isRecording", String(),
-                                      NormalisableRange<float> (0.0f, 1.0f, 1.0f), 0.0f,
-                                      invertPhaseToText,    // value to text function
-                                      textToInvertPhase);   // text to value function
-    parameters.createAndAddParameter ("isLooping", "isLooping", String(),
+    _parameters.createAndAddParameter ("isLooping", "isLooping", String(),
                                       NormalisableRange<float> (0.0f, 1.0f, 1.0f), 0.0f,
                                       invertPhaseToText,    // value to text function
                                       textToInvertPhase);   // text to value function
     
-    parameters.state = ValueTree (Identifier ("playhead2OSCParameters"));
+    _parameters.state = ValueTree (Identifier ("playhead2OSCParameters"));
     
     
     _sender.connect ("127.0.0.1", 9001);
@@ -169,9 +168,7 @@ void Playhead2oscAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBu
 {
     if (AudioPlayHead* ph = getPlayHead())
     {
-        AudioPlayHead::CurrentPositionInfo newTime;
         _noErrorTryingToGetTime = ph->getCurrentPosition (_currentTime);
-
     }
 }
 
@@ -183,7 +180,7 @@ bool Playhead2oscAudioProcessor::hasEditor() const
 
 AudioProcessorEditor* Playhead2oscAudioProcessor::createEditor()
 {
-    return new Playhead2oscAudioProcessorEditor (*this, parameters);
+    return new Playhead2oscAudioProcessorEditor (*this, _parameters);
 }
 
 //==============================================================================
@@ -215,33 +212,33 @@ bool Playhead2oscAudioProcessor::connect(String address, int port){
 void Playhead2oscAudioProcessor::timerCallback(){
     if(_noErrorTryingToGetTime){
         
-        if(*parameters.getRawParameterValue ("bpm") > 0.5f){
+        if(*_parameters.getRawParameterValue ("bpm") > 0.5f){
             auto bpm = _currentTime.bpm;
             _sender.send ("/"+getName()+"/bpm", (float) (bpm));
         }
         
-        if(*parameters.getRawParameterValue ("timeSignature") > 0.5f){
+        if(*_parameters.getRawParameterValue ("timeSignature") > 0.5f){
             auto timeSigNumerator = _currentTime.timeSigNumerator;
             auto timeSigDemominator = _currentTime.timeSigDenominator;
             _sender.send("/"+getName()+"/signature", (int) timeSigNumerator, (int) timeSigDemominator);
         }
         
-        if(*parameters.getRawParameterValue ("timeInSeconds") > 0.5f){
+        if(*_parameters.getRawParameterValue ("timeInSeconds") > 0.5f){
             auto timeInSeconds = _currentTime.timeInSeconds;
             _sender.send ("/"+getName()+"/timeInSeconds", (float) (timeInSeconds));
         }
         
-        if(*parameters.getRawParameterValue ("isPlaying") > 0.5f){
+        if(*_parameters.getRawParameterValue ("isPlaying") > 0.5f){
             auto isPlaying = _currentTime.isPlaying;
             _sender.send ("/"+getName()+"/isPlaying", (bool) (isPlaying));
         }
         
-        if(*parameters.getRawParameterValue ("isRecording") > 0.5f){
+        if(*_parameters.getRawParameterValue ("isRecording") > 0.5f){
             auto isRecording = _currentTime.isRecording;
             _sender.send ("/"+getName()+"/isRecording", (bool) (isRecording));
         }
         
-        if(*parameters.getRawParameterValue ("isLooping") > 0.5f){
+        if(*_parameters.getRawParameterValue ("isLooping") > 0.5f){
             auto isLooping = _currentTime.isLooping;
             _sender.send ("/"+getName()+"/isLooping", (bool) (isLooping));
         }

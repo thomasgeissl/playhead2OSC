@@ -69,13 +69,13 @@ public:
         return 0.0f;
     }
     
-    void timerCallback();
+    void timerCallback() override;
     bool connect(String address, int port = 9001);
     
  
 private:
     //==============================================================================
-    AudioProcessorValueTreeState parameters;
+    AudioProcessorValueTreeState _parameters;
     OSCSender _sender;
     AudioPlayHead::CurrentPositionInfo _currentTime;
     bool _noErrorTryingToGetTime;

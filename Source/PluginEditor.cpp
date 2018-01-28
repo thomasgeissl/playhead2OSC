@@ -16,8 +16,6 @@
 Playhead2oscAudioProcessorEditor::Playhead2oscAudioProcessorEditor (Playhead2oscAudioProcessor& p, AudioProcessorValueTreeState& vts)
     : AudioProcessorEditor (&p), _processor (p), _valueTreeState(vts)
 {
-
-    
     setOpaque (true);
     addAndMakeVisible (_remoteHostTextEditor);
     addAndMakeVisible (_remotePortTextEditor);
